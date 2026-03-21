@@ -1,0 +1,42 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+.Trashes
+*.icloud
+
+# Xcode
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcscmblueprint
+
+# Swift Data
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Word Sets (Ignore all imported files)
+*.xlsx
+*.xls
+*.txt
+*.csv
+
+# BUT DO NOT ignore language JSONs
+!WordWise/Resources/Languages/*.json

@@ -1,0 +1,22 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_test:
+    runs-on: macos-15
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+      
+    - name: Clean & Build
+      run: xcodebuild clean build -project WordWise.xcodeproj -scheme WordWise -destination 'platform=macOS'
+      
+    - name: Run Tests
+      run: xcodebuild test -project WordWise.xcodeproj -scheme WordWise -destination 'platform=macOS' -test-sdk macosx
