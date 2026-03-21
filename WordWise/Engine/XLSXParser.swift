@@ -50,8 +50,8 @@ struct XLSXParser {
                     for j in 1..<cells.count {
                         let cellContent = cells[j]
                         guard let colEndIdx = cellContent.range(of: "\"")?.lowerBound,
-                              let vStart = cellContent.range(of: "<v>"),
-                              let vEnd = cellContent.range(of: "</v>") else { continue }
+                               let vStart = cellContent.range(of: "<v>"),
+                               let vEnd = cellContent.range(of: "</v>") else { continue }
                         let colRef = String(cellContent[..<colEndIdx])
                         let col = colRef.trimmingCharacters(in: .decimalDigits)
                         
@@ -71,8 +71,8 @@ struct XLSXParser {
                         if col == "A" { wordA = cellValue }
                         if col == "B" { wordB = cellValue }
                     }
-                    let cleanA = wordA.trimmingCharacters(in: .whitespacesAndNewlines)
-                    let cleanB = wordB.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let cleanA = sanitize(wordA)
+                    let cleanB = sanitize(wordB)
                     if !cleanA.isEmpty && !cleanB.isEmpty {
                         rows.append([cleanB, cleanA]) // [Polish, English]
                     }
@@ -80,5 +80,14 @@ struct XLSXParser {
             }
         }
         return rows
+    }
+    
+    static func sanitize(_ text: String) -> String {
+        return text
+            .replacingOccurrences(of: "\u{00A0}", with: " ")
+            .replacingOccurrences(of: "\u{200B}", with: "")
+            .replacingOccurrences(of: "\u{FEFF}", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }.joined(separator: " ")
     }
 }

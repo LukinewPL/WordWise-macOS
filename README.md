@@ -10,12 +10,6 @@
 
 ---
 
-## 📸 Screenshots
-
-*(Animated GIF placeholder: App gameplay showing glassmorphism and liquid animations)*
-
----
-
 ## ✨ Features
 
 - 🔥 **SM-2 Spaced Repetition**: Intelligent algorithm that maximizes long-term memory retention.

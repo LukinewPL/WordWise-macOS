@@ -11,9 +11,19 @@ struct GlassEffect: ViewModifier {
             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
     }
 }
+struct PressAnimation: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.interactiveSpring(), value: configuration.isPressed)
+    }
+}
+
 extension View {
     func glassEffect() -> some View { self.modifier(GlassEffect()) }
+    func pressAnimation() -> some View { self.buttonStyle(PressAnimation()) }
 }
+
 struct GlassButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

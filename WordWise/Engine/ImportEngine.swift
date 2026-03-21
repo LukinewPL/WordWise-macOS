@@ -4,6 +4,9 @@ import UniformTypeIdentifiers
 
 struct ImportEngine {
     static func importFile(url: URL, context: ModelContext, existingSets: [WordSet]) throws {
+        let access = url.startAccessingSecurityScopedResource()
+        defer { if access { url.stopAccessingSecurityScopedResource() } }
+        
         let name = url.deletingPathExtension().lastPathComponent
         let wset = getOrCreateSet(name: name, context: context, existingSets: existingSets)
         
@@ -32,9 +35,6 @@ struct ImportEngine {
     }
     
     private static func parseTXT(url: URL) throws -> [[String]] {
-        let access = url.startAccessingSecurityScopedResource()
-        defer { if access { url.stopAccessingSecurityScopedResource() } }
-        
         let data = try Data(contentsOf: url)
         var parsedText: String? = nil
         
