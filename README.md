@@ -1,6 +1,5 @@
 # 📚 WordWise
 
-[![Build Status](https://github.com/lukinew/WordWise/actions/workflows/build.yml/badge.svg)](https://github.com/lukinew/WordWise/actions/workflows/build.yml) 
 ![Swift 6](https://img.shields.io/badge/Swift-6.0-orange) 
 ![macOS 15+](https://img.shields.io/badge/macOS-15+-blue) 
 ![License](https://img.shields.io/badge/License-BSL--1.1-red)
