@@ -36,9 +36,10 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(lm.t("animation_speed")).font(.headline).foregroundColor(.glassCyan)
                     HStack {
-                        Text(lm.t("slow")).foregroundColor(.white)
-                        Slider(value: $animationSpeed, in: 0.5...2.0).tint(.glassCyan)
-                        Text(lm.t("fast")).foregroundColor(.white)
+                        Text(animationSpeed == 0 ? lm.t("off") : String(format: "%.1fx", animationSpeed))
+                            .foregroundColor(.white)
+                            .frame(width: 60)
+                        Slider(value: $animationSpeed, in: 0.0...2.0, step: 0.5).tint(.glassCyan)
                     }
                 }.glassEffect()
                 

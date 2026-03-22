@@ -47,14 +47,14 @@ struct HomeView: View {
                     Spacer()
                     statCard(
                         icon: "flame.fill",
-                        value: "\(streak)",
+                        value: streak,
                         label: lm.t("streak"),
                         iconColor: streak > 0 ? Color.orange : Color.gray
                     )
                     
                     statCard(
                         icon: nil,
-                        value: "\(todayWords)",
+                        value: todayWords,
                         label: lm.t("words_today"),
                         valueColor: .glassCyan
                     )
@@ -67,12 +67,14 @@ struct HomeView: View {
                         .foregroundColor(.white)
                         .padding(.horizontal)
                     
-                    VStack {
+                    HStack {
+                        Spacer()
                         HeatmapView(sessions: sessions)
                             .padding(.vertical, 20)
+                            .fixedSize()
+                            .glassEffect()
+                        Spacer()
                     }
-                    .frame(maxWidth: .infinity)
-                    .glassEffect()
                 }
             }
             .padding(.vertical, 30)
@@ -81,7 +83,7 @@ struct HomeView: View {
         .background(Color.deepNavy.ignoresSafeArea())
     }
     
-    private func statCard(icon: String?, value: String, label: String, iconColor: Color = .white, valueColor: Color = .white) -> some View {
+    private func statCard(icon: String?, value: Int, label: String, iconColor: Color = .white, valueColor: Color = .white) -> some View {
         VStack(spacing: 8) {
             if let iconName = icon {
                 Image(systemName: iconName)
@@ -89,9 +91,11 @@ struct HomeView: View {
                     .foregroundColor(iconColor)
             }
             
-            Text(value)
+            Text("\(value)")
                 .font(.system(size: 64, weight: .bold))
                 .foregroundColor(valueColor)
+                .contentTransition(.numericText())
+                .animation(.spring, value: value)
             
             Text(label)
                 .font(.headline.bold())
@@ -103,6 +107,12 @@ struct HomeView: View {
     
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
-        return hour < 12 ? lm.t("good_morning") : lm.t("good_evening")
+        if hour >= 5 && hour < 12 {
+            return lm.t("good_morning")
+        } else if hour >= 12 && hour < 18 {
+            return lm.t("good_afternoon")
+        } else {
+            return lm.t("good_evening")
+        }
     }
 }

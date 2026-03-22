@@ -42,7 +42,7 @@ struct HeatmapView: View {
             }
             Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: 150)
+        .drawingGroup()
     }
     
     private func dateFor(week: Int, day: Int) -> Date {

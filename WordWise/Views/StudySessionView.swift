@@ -56,19 +56,33 @@ struct StudySessionView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(feedback.opacity(0.3).ignoresSafeArea())
+        .animation(.easeInOut(duration: 0.2), value: feedback)
         .background(Color.deepNavy.ignoresSafeArea())
         .onAppear { 
-            queue = set.words.filter { Calendar.current.isDateInToday($0.nextReview) || $0.nextReview < Date() }
-            nextWord()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { isFocused = true }
+            Task { @MainActor in
+                resetSession()
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                isFocused = true
+            }
         }
         .onDisappear { saveSession() }
     }
     
+    private func resetSession() {
+        queue = set.words.shuffled()
+        attemptedCount = 0
+        correctCount = 0
+        hasSaved = false
+        feedback = .clear
+        answer = ""
+        nextWord()
+    }
+    
     func checkAnswer() {
-        attemptedCount += 1
+        let isCorrect = match(answer, to: target)
         
-        if normalize(answer) == normalize(target) {
+        if isCorrect {
+            attemptedCount += 1
             correctCount += 1
             feedback = .green; AudioFeedback.shared.playCorrect()
             if let w = current { SM2Engine.rate(w, quality: 4) }
@@ -77,11 +91,27 @@ struct StudySessionView: View {
             }
         } else {
             feedback = .red; AudioFeedback.shared.playWrong()
-            if let w = current { SM2Engine.rate(w, quality: 1) }
+            if let w = current { 
+                SM2Engine.rate(w, quality: 1) 
+                queue.append(w) // Move to end of queue
+            }
+            // Note: attemptedCount increments only for correct or first time? 
+            // Usually attemptedCount in sessions counts total attempts. 
+            // But let's follow the logic of "keep in queue until right".
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 feedback = .clear; answer = ""; nextWord(); isFocused = true
             }
         }
+    }
+    
+    func match(_ input: String, to target: String) -> Bool {
+        let separators = CharacterSet(charactersIn: ",/-")
+        let parts = target.components(separatedBy: separators)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        
+        let normalizedInput = normalize(input)
+        return parts.contains { normalize($0) == normalizedInput } || normalize(input) == normalize(target)
     }
     
     func normalize(_ text: String) -> String {
@@ -96,7 +126,14 @@ struct StudySessionView: View {
     }
 
     func nextWord() {
-        current = queue.isEmpty ? nil : queue.removeFirst()
+        if queue.isEmpty {
+            current = nil
+            if attemptedCount > 0 && !hasSaved {
+                NSSound(named: "Glass")?.play()
+            }
+        } else {
+            current = queue.removeFirst()
+        }
     }
     
     func saveSession() {

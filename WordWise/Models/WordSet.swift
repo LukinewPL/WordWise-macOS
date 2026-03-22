@@ -1,3 +1,4 @@
+import SwiftUI
 import SwiftData
 import Foundation
 
@@ -12,6 +13,8 @@ enum TranslationDirection: Int, Codable {
     var createdAt: Date = Date()
     @Relationship(deleteRule: .cascade) var words: [Word] = []
     var translationDirectionRaw: Int = TranslationDirection.polishToEnglish.rawValue
+    var bestScore: Int = 0
+    var folder: Folder?
 
     init(id: UUID = UUID(), name: String, createdAt: Date = Date(), words: [Word] = [], dir: Int = TranslationDirection.polishToEnglish.rawValue) {
         self.id = id; self.name = name; self.createdAt = createdAt; self.words = words; self.translationDirectionRaw = dir

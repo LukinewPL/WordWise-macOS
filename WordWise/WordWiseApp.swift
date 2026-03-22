@@ -9,6 +9,8 @@ import SwiftData
                 .preferredColorScheme(.dark)
                 .environment(languageManager)
         }
-        .modelContainer(for: [WordSet.self, Word.self, StudySession.self])
+        .modelContainer(for: [WordSet.self, Word.self, StudySession.self, Folder.self])
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 800, height: 600)
     }
 }

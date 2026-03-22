@@ -8,7 +8,6 @@ struct TestView: View {
     @State private var isFinished = false
     @State private var questionCount = 10.0
     @State private var isMultipleChoice = true
-    
     @State private var queue: [Word] = []
     @State private var currentIdx = 0
     @State private var score = 0
@@ -18,8 +17,8 @@ struct TestView: View {
     @State private var wrongAnswers: [(String, String)] = []
     @State private var selectedOption: String? = nil
     @Environment(\.modelContext) private var ctx
-    
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("animationSpeed") var animationSpeed: Double = 1.0
     
     var current: Word? { queue.indices.contains(currentIdx) ? queue[currentIdx] : nil }
     var prompt: String {
@@ -125,6 +124,7 @@ struct TestView: View {
                         .tint(.glassCyan)
                         .scaleEffect(x: 1, y: 0.5, anchor: .center)
                         .frame(height: 4)
+                        .animation(.easeInOut(duration: 0.3), value: currentIdx)
                         .padding(.horizontal)
                 }
                 .padding(.top)
@@ -155,7 +155,7 @@ struct TestView: View {
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 .scaleEffect(selectedOption == opt ? 1.05 : 1.0)
-                                .animation(.spring(), value: selectedOption)
+                                .animation(animationSpeed > 0 ? .spring() : nil, value: selectedOption)
                                 .disabled(selectedOption != nil)
                             }
                         }.padding()
@@ -251,6 +251,7 @@ struct TestView: View {
     
     private func finishTest() {
         isFinished = true
+        NSSound(named: "Glass")?.play()
         for w in queue { SM2Engine.rate(w, quality: 3) }
     }
     

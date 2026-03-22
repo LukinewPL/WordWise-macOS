@@ -31,7 +31,7 @@
     "reset_all_data_q": "Zresetować wszystkie dane?",
     "reset": "Zresetuj",
     "time_up": "Koniec czasu!",
-    "score": "Wynik:",
+    "score": "Wynik",
     "test_setup": "Ustawienia testu",
     "questions": "Liczba pytań",
     "multiple_choice": "Wielokrotny wybór",
@@ -39,7 +39,23 @@
     "start": "Zacznij",
     "test_results": "Wyniki testu",
     "good_morning": "Dzień dobry",
+    "good_afternoon": "Dobrego popołudnia",
     "good_evening": "Dobry wieczór",
-    "translation": "Tłumaczenie"
+    "translation": "Tłumaczenie",
+    "rename": "Zmień nazwę",
+    "move_to_folder": "Przenieś do folderu",
+    "record": "Rekord",
+    "new_record": "Nowy rekord",
+    "new_folder": "Nowy folder",
+    "new_folder_name": "Nazwa folderu",
+    "create": "Utwórz",
+    "ungrouped": "Niezgrupowane",
+    "none": "Brak",
+    "rename_set": "Zmień nazwę zestawu",
+    "new_name": "Nowa nazwa",
+    "save": "Zapisz",
+    "off": "Wył.",
+    "import": "Importuj",
+    "unfiled": "Niezgrupowane"
   }
 }
