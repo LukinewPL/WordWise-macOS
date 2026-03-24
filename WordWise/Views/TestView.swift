@@ -8,7 +8,7 @@ struct TestView: View {
     @Bindable var set: WordSet
     @State private var vm: TestViewModel
     
-    @Environment(\.modelContext) private var ctx
+    @Environment(WordRepository.self) private var repository
     @Environment(\.dismiss) private var dismiss
     @AppStorage("animationSpeed") var animationSpeed: Double = 1.0
     
@@ -31,7 +31,8 @@ struct TestView: View {
         .background(vm.feedbackColor.opacity(0.3).ignoresSafeArea())
         .background(Color.deepNavy.ignoresSafeArea())
         .onAppear {
-            vm.setup(modelContext: ctx, dismiss: { dismiss() })
+            vm.setup(repository: repository, dismiss: { dismiss() })
+            if vm.isFinished { vm.reset() }
         }
     }
     
@@ -126,8 +127,21 @@ struct TestView: View {
     
     private var questionView: some View {
         VStack(spacing: 5) {
-            Text("\(vm.currentIdx + 1) / \(vm.queue.count)")
-                .font(.caption).bold().foregroundColor(.white.opacity(0.5))
+            HStack {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.white.opacity(0.3))
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal)
+                Spacer()
+                Text("\(vm.currentIdx + 1) / \(vm.queue.count)")
+                    .font(.caption).bold().foregroundColor(.white.opacity(0.5))
+                Spacer()
+                Spacer() // Balance
+            }
+            .padding(.top, 10)
             
             ProgressView(value: Double(vm.currentIdx), total: Double(vm.queue.count))
                 .progressViewStyle(LinearProgressViewStyle())

@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 import Observation
 
-@Observable final class TestViewModel {
+@Observable @MainActor final class TestViewModel {
     var set: WordSet
     var isSetup = true
     var isFinished = false
@@ -20,16 +20,26 @@ import Observation
     var showCorrectAnswer = false
     
     // Dependencies
-    private var modelContext: ModelContext?
+    private var repository: (any WordRepositoryProtocol)?
+    private var sm2Service = SM2Service()
     private var dismissAction: (() -> Void)?
     
     init(set: WordSet) {
         self.set = set
     }
     
-    func setup(modelContext: ModelContext, dismiss: @escaping () -> Void) {
-        self.modelContext = modelContext
+    func setup(repository: any WordRepositoryProtocol, dismiss: @escaping () -> Void) {
+        self.repository = repository
         self.dismissAction = dismiss
+    }
+    
+    func reset() {
+        isSetup = true
+        isFinished = false
+        currentIdx = 0
+        score = 0
+        answer = ""
+        queue = []
     }
     
     var current: Word? { queue.indices.contains(currentIdx) ? queue[currentIdx] : nil }
@@ -122,17 +132,16 @@ import Observation
         NSSound(named: "Glass")?.play()
         for w in queue {
             let quality = wordQualities[w.id] ?? 3
-            SM2Engine.rate(w, quality: quality)
+            sm2Service.rate(w, quality: quality)
         }
     }
     
     func finishTestAndSave() {
-        if !queue.isEmpty, let ctx = modelContext {
+        if !queue.isEmpty, let repo = repository {
             let session = StudySession(wordSetID: set.id)
             session.wordsStudied = queue.count
             session.correctAnswers = score
-            ctx.insert(session)
-            try? ctx.save()
+            repo.insertSession(session)
         }
         dismissAction?()
     }

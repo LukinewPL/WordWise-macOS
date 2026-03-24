@@ -19,7 +19,7 @@ enum AppError: LocalizedError {
     }
 }
 
-@Observable class ErrorHandler {
+@Observable @MainActor class ErrorHandler {
     static let shared = ErrorHandler()
     var currentError: AppError?
     var showErrorMessage = false

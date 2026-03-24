@@ -7,11 +7,10 @@ import UniformTypeIdentifiers
 struct SetsLibraryView: View {
     @Environment(LanguageManager.self) private var lm
     @Environment(WordRepository.self) private var repository
-    @Environment(\.modelContext) var ctx
     @State private var vm = SetsLibraryViewModel()
     
     var body: some View {
-        NavigationStack {
+        Group {
             Group {
                 if vm.allSets.isEmpty && vm.folders.isEmpty {
                     DropZoneView(showFilePicker: $vm.showFilePicker)
@@ -54,7 +53,7 @@ struct SetsLibraryView: View {
         }
         .fileImporter(isPresented: $vm.showFilePicker, allowedContentTypes: vm.allowedContentTypes) { result in
             switch result {
-            case .success(let url): vm.importFile(url: url, context: ctx)
+            case .success(let url): vm.importFile(url: url)
             case .failure(let error): 
                 vm.importError = error.localizedDescription
                 vm.showError = true
@@ -140,40 +139,23 @@ private struct FolderSectionView: View {
                 }
             }
             .padding()
-            .background(vm.dragOverFolderID == folder.id ? Color.glassCyan.opacity(0.15) : Color.white.opacity(0.01))
-            .contentShape(Rectangle())
-            .onTapGesture {
-                withAnimation(.spring(bounce: 0.2)) {
-                    if vm.expandedFolders.contains(folder.id) {
-                        vm.expandedFolders.remove(folder.id)
-                    } else {
-                        vm.expandedFolders.insert(folder.id)
-                    }
-                }
-                _ = ()
-            }
-            .cornerRadius(16)
+            .background(vm.dragOverFolderID == folder.id ? Color.glassCyan.opacity(0.15) : Color.white.opacity(0.04))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(vm.dragOverFolderID == folder.id ? Color.cyan : Color.clear, lineWidth: 2)
+                    .stroke(vm.dragOverFolderID == folder.id ? Color.glassCyan : Color.white.opacity(0.1), lineWidth: 1)
             )
             
             if isExpanded && !folder.sets.isEmpty {
-                VStack(alignment: .leading, spacing: 0) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 20) {
-                            ForEach(folder.sets.sorted(by: { $0.name < $1.name })) { s in
-                                NavigationLink(destination: SetDetailView(set: s)) {
-                                    SetCard(set: s)
-                                }.buttonStyle(.plain)
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 14)
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 340), spacing: 20)], spacing: 20) {
+                    ForEach(folder.sets.sorted(by: { $0.name < $1.name })) { s in
+                        NavigationLink(value: AppScreen.setDetail(s)) {
+                            SetCard(set: s)
+                        }.buttonStyle(.plain)
                     }
-                    .transition(.opacity)
                 }
-                .clipped()
+                .padding()
+                .transition(.opacity)
             }
         }
         .padding(.horizontal)
@@ -201,6 +183,15 @@ private struct FolderSectionView: View {
                 }
             }
         }
+        .onTapGesture {
+            withAnimation(.spring(bounce: 0.2)) {
+                if vm.expandedFolders.contains(folder.id) {
+                    vm.expandedFolders.remove(folder.id)
+                } else {
+                    vm.expandedFolders.insert(folder.id)
+                }
+            }
+        }
     }
 }
 
@@ -211,7 +202,7 @@ private struct UngroupedSectionView: View {
     @Environment(LanguageManager.self) private var lm
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(lm.t("unfiled"))
                     .font(.title3.bold())
@@ -236,17 +227,14 @@ private struct UngroupedSectionView: View {
             }
                 
             if !ungroupedSets.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 20) {
-                        ForEach(ungroupedSets) { s in
-                            NavigationLink(destination: SetDetailView(set: s)) {
-                                SetCard(set: s)
-                            }.buttonStyle(.plain)
-                        }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 340), spacing: 20)], spacing: 20) {
+                    ForEach(ungroupedSets) { s in
+                        NavigationLink(value: AppScreen.setDetail(s)) {
+                            SetCard(set: s)
+                        }.buttonStyle(.plain)
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 10)
                 }
+                .padding(.vertical, 10)
             }
         }
         .padding(.horizontal)

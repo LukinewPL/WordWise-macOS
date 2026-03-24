@@ -2,11 +2,11 @@ import SwiftUI
 import SwiftData
 import Observation
 
-@Observable class HomeViewModel {
+@Observable @MainActor class HomeViewModel {
     var sessions: [StudySession] = []
-    private var repository: WordRepository?
+    private var repository: (any WordRepositoryProtocol)?
     
-    func setup(repository: WordRepository) {
+    func setup(repository: any WordRepositoryProtocol) {
         self.repository = repository
         refresh()
     }

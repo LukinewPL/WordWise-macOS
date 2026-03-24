@@ -11,7 +11,7 @@ struct LanguageInfo: Codable, Identifiable {
 /// To add a new language, create a new JSON file in Resources/Languages/
 /// following the same structure as en.json and add it to the Xcode project's
 /// Copy Bundle Resources phase.
-@Observable class LanguageManager {
+@Observable @MainActor class LanguageManager {
     static let shared = LanguageManager()
     
     var availableLanguages: [LanguageInfo] = []

@@ -2,13 +2,13 @@ import Foundation
 import SwiftData
 import UniformTypeIdentifiers
 
-struct ImportEngine {
-    static func importFile(url: URL, context: ModelContext, existingSets: [WordSet]) throws {
+class ImportService {
+    func importFile(url: URL, context: ModelContext, existingSets: [WordSet], mergeExisting: Bool = false) throws {
         let access = url.startAccessingSecurityScopedResource()
         defer { if access { url.stopAccessingSecurityScopedResource() } }
         
         let name = url.deletingPathExtension().lastPathComponent
-        let wset = getOrCreateSet(name: name, context: context, existingSets: existingSets)
+        let wset = getOrCreateSet(name: name, context: context, existingSets: existingSets, merge: mergeExisting)
         
         let rows: [[String]]
         if url.pathExtension.lowercased() == "xlsx" {
@@ -20,7 +20,15 @@ struct ImportEngine {
         var importedCount = 0
         for p in rows {
             if p.count == 2 {
-                let word = Word(polish: p[0], english: p[1])
+                let polish = p[0]
+                let english = p[1]
+                
+                // Basic deduplication if merging
+                if mergeExisting && wset.words.contains(where: { $0.polish == polish && $0.english == english }) {
+                    continue
+                }
+                
+                let word = Word(polish: polish, english: english)
                 word.set = wset
                 wset.words.append(word)
                 context.insert(word)
@@ -28,13 +36,13 @@ struct ImportEngine {
             }
         }
         
-        if importedCount == 0 {
-            throw NSError(domain: "WordWise", code: 2, userInfo: [NSLocalizedDescriptionKey: "No valid words found in file."])
+        if importedCount == 0 && !mergeExisting {
+            throw NSError(domain: "WordWise", code: 2, userInfo: [NSLocalizedDescriptionKey: "No valid new words found in file."])
         }
         try context.save()
     }
     
-    private static func parseTXT(url: URL) throws -> [[String]] {
+    private func parseTXT(url: URL) throws -> [[String]] {
         let data = try Data(contentsOf: url)
         var parsedText: String? = nil
         
@@ -57,19 +65,32 @@ struct ImportEngine {
             let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmedLine.isEmpty { continue }
             
-            let sep = trimmedLine.contains("=") ? "=" : (trimmedLine.contains(";") ? ";" : "\t")
+            let sep: String
+            if trimmedLine.contains("\t") { sep = "\t" }
+            else if trimmedLine.contains("=") { sep = "=" }
+            else if trimmedLine.contains(";") { sep = ";" }
+            else { continue }
+            
             let p = trimmedLine.components(separatedBy: sep).map{ $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             if p.count == 2, !p[0].isEmpty, !p[1].isEmpty {
-                rows.append([p[1], p[0]]) // [Polish, English]
+                // Heuristic: check if common order English=Polish or Polish=English
+                // In this app, Word(polish: p[0], english: p[1])
+                // So if file is English=Polish, we should swap.
+                // But let's stay consistent with whatever user format was before.
+                // Previous code: rows.append([p[1], p[0]]) // [Polish, English]
+                // This means input was Expected: [English, Polish] -> Output: [Polish, English]
+                rows.append([p[1], p[0]]) 
             }
         }
         return rows
     }
     
-    private static func getOrCreateSet(name: String, context: ModelContext, existingSets: [WordSet]) -> WordSet {
+    private func getOrCreateSet(name: String, context: ModelContext, existingSets: [WordSet], merge: Bool) -> WordSet {
         if let existing = existingSets.first(where: { $0.name == name }) {
-            for word in existing.words { context.delete(word) }
-            existing.words.removeAll()
+            if !merge {
+                for word in existing.words { context.delete(word) }
+                existing.words.removeAll()
+            }
             return existing
         } else {
             let newSet = WordSet(name: name)
@@ -78,3 +99,4 @@ struct ImportEngine {
         }
     }
 }
+

@@ -12,6 +12,9 @@
 		A0000000000000000000012 /* SetsLibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000011 /* SetsLibraryViewModel.swift */; };
 		A0000000000000000000014 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000013 /* ErrorHandler.swift */; };
 		A0000000000000000000016 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000015 /* DesignSystem.swift */; };
+		A0000000000000000000018 /* WordRepositoryProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000017 /* WordRepositoryProtocol.swift */; };
+		A0000000000000000000020 /* StudySessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000019 /* StudySessionViewModel.swift */; };
+		A0000000000000000000022 /* SpeedRoundViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000021 /* SpeedRoundViewModel.swift */; };
 
 		06F7631D998648E6986FBECB /* Folder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AE294B2308842E688BD22E4 /* Folder.swift */; };
 		3C805D2E24D44C858CC4E2A7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; };
@@ -96,6 +99,8 @@
 				A0000000000000000000007 /* TestViewModel.swift */,
 				A0000000000000000000009 /* HomeViewModel.swift */,
 				A0000000000000000000011 /* SetsLibraryViewModel.swift */,
+				A0000000000000000000019 /* StudySessionViewModel.swift */,
+				A0000000000000000000021 /* SpeedRoundViewModel.swift */,
 
 			);
 			path = "ViewModels";
@@ -167,6 +172,9 @@
 		A0000000000000000000011 /* SetsLibraryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetsLibraryViewModel.swift; sourceTree = "<group>"; };
 		A0000000000000000000013 /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
 		A0000000000000000000015 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		A0000000000000000000017 /* WordRepositoryProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordRepositoryProtocol.swift; sourceTree = "<group>"; };
+		A0000000000000000000019 /* StudySessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySessionViewModel.swift; sourceTree = "<group>"; };
+		A0000000000000000000021 /* SpeedRoundViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedRoundViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -240,6 +248,7 @@
 			isa = PBXGroup;
 			children = (
 				A0000000000000000000005 /* WordRepository.swift */,
+				A0000000000000000000017 /* WordRepositoryProtocol.swift */,
 			);
 			path = Repository;
 			sourceTree = "<group>";
@@ -380,6 +389,9 @@
 				A0000000000000000000012 /* SetsLibraryViewModel.swift in Sources */,
 				A0000000000000000000014 /* ErrorHandler.swift in Sources */,
 				A0000000000000000000016 /* DesignSystem.swift in Sources */,
+				A0000000000000000000018 /* WordRepositoryProtocol.swift in Sources */,
+				A0000000000000000000020 /* StudySessionViewModel.swift in Sources */,
+				A0000000000000000000022 /* SpeedRoundViewModel.swift in Sources */,
 				06F7631D998648E6986FBECB /* Folder.swift in Sources */,
 				98508A1F98F04BB9A730F309 /* ImportEngine.swift in Sources */,
 				3C1234567890ABCDEF444002 /* XLSXParser.swift in Sources */,

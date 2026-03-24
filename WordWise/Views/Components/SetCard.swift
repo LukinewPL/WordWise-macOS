@@ -25,153 +25,33 @@ struct SetCard: View {
     }
     
     var body: some View {
-        VStack(spacing: 15) {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(set.name)
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    Text("\(totalCount) \(lm.t("words"))")
-                        .font(.subheadline)
-                        .foregroundColor(.glassCyan)
-                }
-                Spacer()
-                Button(action: { showDeleteConfirm = true }) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                        .font(.system(size: 20))
-                }
-                .buttonStyle(.plain)
-            }
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium) {
+            headerSection
             
-            
-            HStack(spacing: 8) {
+            HStack(spacing: DesignSystem.Spacing.small) {
                 actionButton(lm.t("study"), icon: "book.fill") { navigateStudy = true }
-                    .help(lm.t("study"))
                 actionButton(lm.t("speed_round"), icon: "bolt.fill") { navigateSpeedRound = true }
-                    .help(lm.t("speed_round"))
                 actionButton(lm.t("test"), icon: "checkmark.circle.fill") { navigateTest = true }
-                    .help(lm.t("test"))
             }
         }
-        .padding()
-        .frame(minWidth: 300)
-        .fixedSize(horizontal: false, vertical: true)
-        .glassEffect()
+        .padding(DesignSystem.Spacing.medium)
+        .frame(minWidth: 280, maxWidth: .infinity)
+        .premiumGlass()
         .onAppear { withAnimation { appearing = true } }
-        .transition(.scale(0.9).combined(with: .opacity))
-        .animation(.spring(bounce: 0.3), value: appearing)
+        .transition(.scale(0.95).combined(with: .opacity))
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appearing)
         .draggable(set.id.uuidString) {
-            ZStack {
-                // Base glass layer
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.15, green: 0.2, blue: 0.4).opacity(0.85),
-                                Color(red: 0.08, green: 0.12, blue: 0.28).opacity(0.9)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                // Top highlight (glass shine)
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(
-                        LinearGradient(
-                            colors: [.white.opacity(0.25), .clear],
-                            startPoint: .top,
-                            endPoint: .center
-                        )
-                    )
-                // Border
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [.white.opacity(0.5), .white.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-                // Content
-                HStack(spacing: 12) {
-                    Image(systemName: "rectangle.stack.fill")
-                        .font(.title3)
-                        .foregroundStyle(.cyan)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(set.name)
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                        Text("\(set.words.count) \(lm.t("words"))")
-                            .font(.caption)
-                            .foregroundStyle(.cyan.opacity(0.8))
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-            }
-            .frame(width: 280, height: 72)
-            .environment(\.colorScheme, .dark)
-            .shadow(color: .cyan.opacity(0.2), radius: 16, y: 8)
-            .compositingGroup()
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .clipped()
+            dragPreview
         }
         .contextMenu {
-            Button {
-                newName = set.name
-                showRenameAlert = true
-            } label: {
-                Label(lm.t("rename"), systemImage: "pencil")
-            }
-            
-            Menu {
-                Button {
-                    set.folder = nil
-                    do {
-                        try ctx.save()
-                    } catch {
-                        print("WordWise: Save failed — \(error)")
-                    }
-                } label: {
-                    Label(lm.t("none"), systemImage: "xmark")
-                }
-                
-                ForEach(folders) { f in
-                    Button(f.name) {
-                        set.folder = f
-                        do {
-                            try ctx.save()
-                        } catch {
-                            print("WordWise: Save failed — \(error)")
-                        }
-                    }
-                }
-            } label: {
-                Label(lm.t("move_to_folder"), systemImage: "folder")
-            }
-            
-            Divider()
-            
-            Button(role: .destructive) {
-                showDeleteConfirm = true
-            } label: {
-                Label(lm.t("delete"), systemImage: "trash")
-            }
+            contextMenuContent
         }
         .alert(lm.t("rename_set"), isPresented: $showRenameAlert) {
             TextField(lm.t("new_name"), text: $newName)
             Button(lm.t("cancel"), role: .cancel) {}
             Button(lm.t("save")) {
                 set.name = newName
-                do {
-                    try ctx.save()
-                } catch {
-                    print("WordWise: Save failed — \(error)")
-                }
+                try? ctx.save()
             }
         }
         .navigationDestination(isPresented: $navigateStudy) { StudySessionView(set: set) }
@@ -183,12 +63,97 @@ struct SetCard: View {
         } message: { Text(lm.t("undone_msg")) }
     }
     
+    private var headerSection: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(set.name)
+                    .font(.title3.bold())
+                    .foregroundColor(.white)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                Text("\(totalCount) \(lm.t("words"))")
+                    .font(.subheadline)
+                    .foregroundColor(DesignSystem.Colors.primary.opacity(0.8))
+            }
+            
+            Spacer()
+            
+            ZStack {
+                Circle()
+                    .stroke(Color.white.opacity(0.1), lineWidth: 4)
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(
+                        AngularGradient(colors: [.glassCyan, .blue, .glassCyan], center: .center),
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+                
+                Text("\(Int(progress * 100))%")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            .frame(width: 40, height: 40)
+        }
+    }
+    
+    private var dragPreview: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "rectangle.stack.fill")
+                .font(.title3)
+                .foregroundStyle(.cyan)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(set.name)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Text("\(set.words.count) \(lm.t("words"))")
+                    .font(.caption)
+                    .foregroundStyle(.cyan.opacity(0.8))
+            }
+        }
+        .padding()
+        .background(DesignSystem.Colors.background.opacity(0.9))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.2)))
+    }
+    
+    private var contextMenuContent: some View {
+        Group {
+            Button {
+                newName = set.name
+                showRenameAlert = true
+            } label: {
+                Label(lm.t("rename"), systemImage: "pencil")
+            }
+            
+            Menu {
+                Button {
+                    set.folder = nil
+                    try? ctx.save()
+                } label: { Label(lm.t("none"), systemImage: "xmark") }
+                
+                ForEach(folders) { f in
+                    Button(f.name) {
+                        set.folder = f
+                        try? ctx.save()
+                    }
+                }
+            } label: { Label(lm.t("move_to_folder"), systemImage: "folder") }
+            
+            Divider()
+            
+            Button(role: .destructive) { showDeleteConfirm = true } label: {
+                Label(lm.t("delete"), systemImage: "trash")
+            }
+        }
+    }
     
     private func actionButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 28, weight: .medium))
-                .frame(maxWidth: .infinity, minHeight: 72)
+                .font(.system(size: 24, weight: .medium))
+                .frame(maxWidth: .infinity, minHeight: 64)
         }
         .buttonStyle(GlassButtonStyle())
     }

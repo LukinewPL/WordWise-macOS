@@ -34,6 +34,16 @@ struct SettingsView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 10) {
+                    Text(lm.t("legend")).font(.headline).foregroundColor(.glassCyan)
+                    VStack(alignment: .leading, spacing: 12) {
+                        legendItem(icon: "book.fill", label: lm.t("study"))
+                        legendItem(icon: "bolt.fill", label: lm.t("speed_round"))
+                        legendItem(icon: "checkmark.circle.fill", label: lm.t("test"))
+                    }
+                    .padding().glassEffect()
+                }
+                
+                VStack(alignment: .leading, spacing: 10) {
                     Text(lm.t("animation_speed")).font(.headline).foregroundColor(.glassCyan)
                     HStack {
                         Text(animationSpeed == 0 ? lm.t("off") : String(format: "%.1fx", animationSpeed))
@@ -54,6 +64,17 @@ struct SettingsView: View {
             Button(lm.t("cancel"), role: .cancel) {}
             Button(lm.t("reset"), role: .destructive) { resetAll() }
         } message: { Text(lm.t("undone_msg")) }
+    }
+    
+    private func legendItem(icon: String, label: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundColor(.glassCyan)
+                .font(.title2)
+                .frame(width: 30)
+            Text(label)
+                .foregroundColor(.white)
+        }
     }
     
     private func resetAll() {
