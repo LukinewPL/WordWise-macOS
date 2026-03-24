@@ -2,27 +2,24 @@ import SwiftUI
 
 struct SetDetailView: View {
     @Environment(LanguageManager.self) private var lm
+    @Environment(AppCoordinator.self) private var coordinator
     @Bindable var set: WordSet
-    @Environment(\.modelContext) var ctx
-    @State private var navigateStudy = false
-    @State private var navigateSpeedRound = false
-    @State private var navigateTest = false
     
     var body: some View {
         VStack {
             HStack {
                 Button(lm.t("study")) {
-                    navigateStudy = true
+                    coordinator.navigate(to: .studySession(set))
                 }
                 .buttonStyle(GlassButtonStyle())
 
                 Button(lm.t("speed_round")) {
-                    navigateSpeedRound = true
+                    coordinator.navigate(to: .speedRound(set))
                 }
                 .buttonStyle(GlassButtonStyle())
 
                 Button(lm.t("test")) {
-                    navigateTest = true
+                    coordinator.navigate(to: .test(set))
                 }
                 .buttonStyle(GlassButtonStyle())
             }
@@ -54,14 +51,6 @@ struct SetDetailView: View {
         }
         .navigationTitle(set.name)
         .background(Color.deepNavy.ignoresSafeArea())
-        .navigationDestination(isPresented: $navigateStudy) {
-            StudySessionView(set: set)
-        }
-        .navigationDestination(isPresented: $navigateSpeedRound) {
-            SpeedRoundView(set: set)
-        }
-        .navigationDestination(isPresented: $navigateTest) {
-            TestView(set: set)
-        }
     }
 }
+

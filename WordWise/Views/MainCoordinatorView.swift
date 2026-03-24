@@ -33,16 +33,23 @@ struct MainCoordinatorView: View {
                 )
                 .ignoresSafeArea()
 
-                Group {
-                    switch coordinator.selectedTab {
-                    case .home:
-                        HomeView()
-                    case .library:
-                        SetsLibraryView()
-                    case .settings:
-                        SettingsView()
+                NavigationStack(path: $coordinator.path) {
+                    Group {
+                        switch coordinator.selectedTab {
+                        case .home:
+                            HomeView()
+                        case .library:
+                            SetsLibraryView()
+                        case .settings:
+                            SettingsView()
+                        }
                     }
+                    .navigationDestination(for: AppScreen.self) { screen in
+                        screenView(for: screen)
+                    }
+                    .toolbarBackground(.hidden, for: .windowToolbar)
                 }
+                .background(Color.clear)
             }
         }
         .frame(minWidth: 700, minHeight: 500)
@@ -52,6 +59,19 @@ struct MainCoordinatorView: View {
             if let error = eh.currentError {
                 Text(error.localizedDescription)
             }
+        }
+    }
+    
+    @ViewBuilder
+    private func screenView(for screen: AppScreen) -> some View {
+        switch screen {
+        case .home: HomeView()
+        case .library: SetsLibraryView()
+        case .setDetail(let set): SetDetailView(set: set)
+        case .studySession(let set): StudySessionView(set: set)
+        case .speedRound(let set): SpeedRoundView(set: set)
+        case .test(let set): TestView(set: set)
+        case .settings: SettingsView()
         }
     }
 }

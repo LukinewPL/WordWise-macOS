@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 import Observation
 
-@Observable class WordRepository {
+@Observable @MainActor class WordRepository: WordRepositoryProtocol {
     private var modelContext: ModelContext
     
     init(modelContext: ModelContext) {
@@ -49,6 +49,10 @@ import Observation
         save()
     }
     
+    func importFile(url: URL) throws {
+        try ImportService().importFile(url: url, context: modelContext, existingSets: fetchAllSets())
+    }
+    
     func save() {
         do {
             try modelContext.save()
@@ -57,3 +61,4 @@ import Observation
         }
     }
 }
+

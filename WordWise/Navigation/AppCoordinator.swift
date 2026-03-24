@@ -11,7 +11,7 @@ enum AppScreen: Hashable {
     case settings
 }
 
-@Observable class AppCoordinator {
+@Observable @MainActor class AppCoordinator {
     var path = NavigationPath()
     var selectedTab: Tab = .home
     

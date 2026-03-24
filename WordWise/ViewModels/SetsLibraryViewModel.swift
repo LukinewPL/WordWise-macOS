@@ -3,7 +3,7 @@ import SwiftData
 import UniformTypeIdentifiers
 import Observation
 
-@Observable class SetsLibraryViewModel {
+@Observable @MainActor class SetsLibraryViewModel {
     var folders: [Folder] = []
     var allSets: [WordSet] = []
     
@@ -18,9 +18,9 @@ import Observation
     var renamingFolderID: UUID? = nil
     var folderRenameText: String = ""
     
-    private var repository: WordRepository?
+    private var repository: (any WordRepositoryProtocol)?
     
-    func setup(repository: WordRepository) {
+    func setup(repository: any WordRepositoryProtocol) {
         self.repository = repository
         refresh()
     }
@@ -66,9 +66,9 @@ import Observation
         refresh()
     }
     
-    func importFile(url: URL, context: ModelContext) {
+    func importFile(url: URL) {
         do {
-            try ImportEngine.importFile(url: url, context: context, existingSets: allSets)
+            try repository?.importFile(url: url)
             refresh()
         } catch {
             importError = error.localizedDescription
