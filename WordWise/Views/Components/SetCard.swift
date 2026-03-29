@@ -1,4 +1,5 @@
-import SwiftUI; import SwiftData
+import SwiftUI
+import SwiftData
 
 struct SetCard: View {
     @Environment(LanguageManager.self) private var lm
@@ -7,39 +8,32 @@ struct SetCard: View {
     @State private var navigateStudy = false
     @State private var navigateSpeedRound = false
     @State private var navigateTest = false
+    @State private var navigateFlashcards = false
     @State private var showDeleteConfirm = false
     @State private var showRenameAlert = false
     @State private var newName = ""
     @Query(sort: \Folder.name) private var folders: [Folder]
-    @State private var appearing = false
     
-    // Explicitly compute to ensure reactivity when underlying words change
     private var masteredCount: Int {
         get { set.words.filter { $0.isMastered }.count }
     }
+    
     private var totalCount: Int {
         get { set.words.count }
     }
+    
     private var progress: Double {
         get { Double(masteredCount) / Double(max(1, totalCount)) }
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium) {
+        VStack(alignment: .leading, spacing: 14) {
             headerSection
-            
-            HStack(spacing: DesignSystem.Spacing.small) {
-                actionButton(lm.t("study"), icon: "book.fill") { navigateStudy = true }
-                actionButton(lm.t("speed_round"), icon: "bolt.fill") { navigateSpeedRound = true }
-                actionButton(lm.t("test"), icon: "checkmark.circle.fill") { navigateTest = true }
-            }
+            actionGrid
         }
-        .padding(DesignSystem.Spacing.medium)
+        .padding(12)
         .frame(minWidth: 280, maxWidth: .infinity)
-        .premiumGlass()
-        .onAppear { withAnimation { appearing = true } }
-        .transition(.scale(0.95).combined(with: .opacity))
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appearing)
+        .setCardPanel(cornerRadius: 18)
         .draggable(set.id.uuidString) {
             dragPreview
         }
@@ -55,6 +49,7 @@ struct SetCard: View {
             }
         }
         .navigationDestination(isPresented: $navigateStudy) { StudySessionView(set: set) }
+        .navigationDestination(isPresented: $navigateFlashcards) { FlashcardsView(set: set) }
         .navigationDestination(isPresented: $navigateSpeedRound) { SpeedRoundView(set: set) }
         .navigationDestination(isPresented: $navigateTest) { TestView(set: set) }
         .alert(lm.t("delete_set_q"), isPresented: $showDeleteConfirm) {
@@ -67,21 +62,20 @@ struct SetCard: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(set.name)
-                    .font(.title3.bold())
+                    .font(.headline.weight(.semibold))
                     .foregroundColor(.white)
                     .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
                 
                 Text("\(totalCount) \(lm.t("words"))")
-                    .font(.subheadline)
-                    .foregroundColor(DesignSystem.Colors.primary.opacity(0.8))
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(Color.glassCyan.opacity(0.9))
             }
             
             Spacer()
             
             ZStack {
                 Circle()
-                    .stroke(Color.white.opacity(0.1), lineWidth: 4)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 4)
                 Circle()
                     .trim(from: 0, to: progress)
                     .stroke(
@@ -89,12 +83,25 @@ struct SetCard: View {
                         style: StrokeStyle(lineWidth: 4, lineCap: .round)
                     )
                     .rotationEffect(.degrees(-90))
-                
                 Text("\(Int(progress * 100))%")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(.white)
             }
-            .frame(width: 40, height: 40)
+            .frame(width: 38, height: 38)
+        }
+    }
+    
+    private var actionGrid: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                actionButton(lm.t("study"), icon: "book.fill") { navigateStudy = true }
+                actionButton(lm.t("flashcards"), icon: "rectangle.stack.fill") { navigateFlashcards = true }
+            }
+            
+            HStack(spacing: 8) {
+                actionButton(lm.t("speed_round"), icon: "bolt.fill") { navigateSpeedRound = true }
+                actionButton(lm.t("test"), icon: "checkmark.circle.fill") { navigateTest = true }
+            }
         }
     }
     
@@ -151,13 +158,29 @@ struct SetCard: View {
     
     private func actionButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 24, weight: .medium))
-                .frame(maxWidth: .infinity, minHeight: 64)
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(Color.glassCyan)
+                Text(title)
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 72)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(LinearGradient(colors: [Color.white.opacity(0.11), Color.white.opacity(0.04)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                    )
+            )
         }
-        .buttonStyle(GlassButtonStyle())
+        .buttonStyle(.plain)
     }
-
+    
     private func deleteSet() {
         for word in set.words { ctx.delete(word) }
         ctx.delete(set)
@@ -166,5 +189,34 @@ struct SetCard: View {
         } catch {
             print("WordWise: Save failed — \(error)")
         }
+    }
+}
+
+private extension View {
+    func setCardPanel(cornerRadius: CGFloat = 18, edgeHighlight: Color = Color.glassCyan.opacity(0.16)) -> some View {
+        self
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.1), Color.white.opacity(0.04)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .stroke(edgeHighlight, lineWidth: 1)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                    )
+                    .shadow(color: .black.opacity(0.2), radius: 14, x: 0, y: 8)
+            )
     }
 }

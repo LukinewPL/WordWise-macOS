@@ -49,8 +49,12 @@ import Observation
         save()
     }
     
-    func importFile(url: URL) throws {
-        try ImportService().importFile(url: url, context: modelContext, existingSets: fetchAllSets())
+    func importFile(url: URL, swapColumns: Bool, lang1: String?, lang2: String?) throws {
+        try ImportService().importFile(url: url, context: modelContext, existingSets: fetchAllSets(), swapColumns: swapColumns, lang1: lang1, lang2: lang2)
+    }
+    
+    func getParsedRows(url: URL) throws -> (name: String, rows: [[String]]) {
+        try ImportService().getParsedRows(from: url)
     }
     
     func save() {

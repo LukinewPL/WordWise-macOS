@@ -8,6 +8,7 @@ enum AppScreen: Hashable {
     case studySession(WordSet)
     case speedRound(WordSet)
     case test(WordSet)
+    case flashcards(WordSet)
     case settings
 }
 

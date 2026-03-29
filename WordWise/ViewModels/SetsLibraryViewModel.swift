@@ -17,6 +17,7 @@ import Observation
     var expandedFolders: Set<UUID> = []
     var renamingFolderID: UUID? = nil
     var folderRenameText: String = ""
+    var importConfig: ImportConfiguration? = nil
     
     private var repository: (any WordRepositoryProtocol)?
     
@@ -66,16 +67,37 @@ import Observation
         refresh()
     }
     
-    func importFile(url: URL) {
+    func startImport(url: URL) {
         do {
-            try repository?.importFile(url: url)
-            refresh()
+            guard let repository = repository else { return }
+            let (name, rows) = try repository.getParsedRows(url: url)
+            let (l1, l2) = ImportService().detectLanguages(for: rows)
+            
+            self.importConfig = ImportConfiguration(
+                url: url,
+                name: name,
+                rows: rows,
+                lang1: l1,
+                lang2: l2
+            )
         } catch {
             importError = error.localizedDescription
             showError = true
         }
     }
     
+    func confirmImport(swap: Bool) {
+        guard let config = importConfig else { return }
+        do {
+            try repository?.importFile(url: config.url, swapColumns: swap, lang1: config.lang1, lang2: config.lang2)
+            importConfig = nil
+            refresh()
+        } catch {
+            importConfig = nil
+            importError = error.localizedDescription
+            showError = true
+        }
+    }
     var allowedContentTypes: [UTType] {
         var types: [UTType] = [.plainText, .commaSeparatedText, .spreadsheet]
         if let xlsx = UTType(filenameExtension: "xlsx") {

@@ -23,6 +23,7 @@ import Observation
     private var repository: (any WordRepositoryProtocol)?
     private var sm2Service = SM2Service()
     private var dismissAction: (() -> Void)?
+    private var pendingAdvanceWorkItem: DispatchWorkItem?
     
     init(set: WordSet) {
         self.set = set
@@ -34,12 +35,24 @@ import Observation
     }
     
     func reset() {
+        pendingAdvanceWorkItem?.cancel()
+        pendingAdvanceWorkItem = nil
         isSetup = true
         isFinished = false
         currentIdx = 0
         score = 0
         answer = ""
         queue = []
+        mcOptions = []
+        wrongAnswers = []
+        selectedOption = nil
+        feedbackColor = .clear
+        showCorrectAnswer = false
+        wordQualities = [:]
+    }
+    
+    func abandonTest() {
+        reset()
     }
     
     var current: Word? { queue.indices.contains(currentIdx) ? queue[currentIdx] : nil }
@@ -55,6 +68,8 @@ import Observation
     }
     
     func startTest() {
+        pendingAdvanceWorkItem?.cancel()
+        pendingAdvanceWorkItem = nil
         queue = Array(set.words.shuffled().prefix(Int(questionCount)))
         currentIdx = 0
         score = 0
@@ -116,7 +131,9 @@ import Observation
     
     private func nextStep() {
         showCorrectAnswer = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+        pendingAdvanceWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else { return }
             withAnimation {
                 self.feedbackColor = .clear
                 self.answer = ""
@@ -125,6 +142,8 @@ import Observation
                 else { self.prepareOptions() }
             }
         }
+        pendingAdvanceWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: workItem)
     }
     
     private func finishTest() {
@@ -137,6 +156,8 @@ import Observation
     }
     
     func finishTestAndSave() {
+        pendingAdvanceWorkItem?.cancel()
+        pendingAdvanceWorkItem = nil
         if !queue.isEmpty, let repo = repository {
             let session = StudySession(wordSetID: set.id)
             session.wordsStudied = queue.count

@@ -44,14 +44,14 @@ struct MainCoordinatorView: View {
                             SettingsView()
                         }
                     }
-                    .navigationDestination(for: AppScreen.self) { screen in
-                        screenView(for: screen)
-                    }
-                    .toolbarBackground(.hidden, for: .windowToolbar)
+                .navigationDestination(for: AppScreen.self) { screen in
+                    screenView(for: screen)
                 }
-                .background(Color.clear)
+                .toolbarBackground(.hidden, for: .windowToolbar)
             }
+            .background(Color.clear)
         }
+    }
         .frame(minWidth: 700, minHeight: 500)
         .alert(lm.t("error_occurred"), isPresented: $eh.showErrorMessage) {
             Button(lm.t("ok"), role: .cancel) { eh.clear() }
@@ -71,6 +71,7 @@ struct MainCoordinatorView: View {
         case .studySession(let set): StudySessionView(set: set)
         case .speedRound(let set): SpeedRoundView(set: set)
         case .test(let set): TestView(set: set)
+        case .flashcards(let set): FlashcardsView(set: set)
         case .settings: SettingsView()
         }
     }

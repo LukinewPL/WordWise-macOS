@@ -1,8 +1,6 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - View
-
 struct HomeView: View {
     @Environment(LanguageManager.self) private var lm
     @Environment(WordRepository.self) private var repository
@@ -11,53 +9,31 @@ struct HomeView: View {
     
     var body: some View {
         ZStack {
-            // Premium background
-            DesignSystem.Colors.background.ignoresSafeArea()
-            
-            ZStack {
-                Circle().fill(Color.glassCyan.opacity(0.12)).frame(width: 400).offset(x: animateCircles ? 150 : -50, y: animateCircles ? -200 : 100)
-                Circle().fill(Color.blue.opacity(0.1)).frame(width: 300).offset(x: animateCircles ? -200 : 100, y: animateCircles ? 150 : -100)
-            }
-            .blur(radius: 80)
-            .animation(.easeInOut(duration: 15).repeatForever(autoreverses: true), value: animateCircles)
+            homeBackground
             
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: DesignSystem.Spacing.large) {
-                    headerSection
+                VStack(alignment: .leading, spacing: 14) {
+                    headerCard
                     
-                    HStack(spacing: DesignSystem.Spacing.large) {
-                        statCard(
-                            icon: "flame.fill",
-                            value: vm.streak,
-                            label: lm.t("streak"),
-                            iconColor: vm.streak > 0 ? Color.orange : Color.gray
-                        )
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 12) {
+                            statCard(icon: "flame.fill", value: vm.streak, label: lm.t("streak"), iconColor: vm.streak > 0 ? .orange : .white.opacity(0.4))
+                            statCard(icon: "checkmark.circle.fill", value: vm.todayWords, label: lm.t("words_today"), iconColor: .glassCyan)
+                        }
                         
-                        statCard(
-                            icon: "checkmark.circle.fill",
-                            value: vm.todayWords,
-                            label: lm.t("words_today"),
-                            iconColor: .glassCyan
-                        )
-                    }
-                    .padding(.horizontal)
-                    
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium) {
-                        Text(lm.t("activity"))
-                            .font(.title2.bold())
-                            .foregroundColor(.white)
-                            .padding(.horizontal)
-                        
-                        HStack {
-                            Spacer()
-                            HeatmapView(sessions: vm.sessions)
-                                .padding(.vertical, DesignSystem.Spacing.medium)
-                                .premiumGlass()
-                            Spacer()
+                        VStack(spacing: 10) {
+                            statCard(icon: "flame.fill", value: vm.streak, label: lm.t("streak"), iconColor: vm.streak > 0 ? .orange : .white.opacity(0.4))
+                            statCard(icon: "checkmark.circle.fill", value: vm.todayWords, label: lm.t("words_today"), iconColor: .glassCyan)
                         }
                     }
+                    
+                    activityCard
                 }
-                .padding(.vertical, DesignSystem.Spacing.large)
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
+                .frame(maxWidth: 1160)
+                .frame(maxWidth: .infinity)
             }
         }
         .onAppear {
@@ -66,37 +42,143 @@ struct HomeView: View {
         }
     }
     
-    private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(lm.t("welcome_back"))
-                .font(.headline)
-                .foregroundColor(.white.opacity(0.6))
-            Text(lm.t(vm.greeting))
-                .vibrantTitle()
-        }
-        .padding(.horizontal)
-    }
-    
-    private func statCard(icon: String?, value: Int, label: String, iconColor: Color = .white, valueColor: Color = .white) -> some View {
-        VStack(spacing: DesignSystem.Spacing.small) {
-            if let iconName = icon {
-                Image(systemName: iconName)
-                    .font(.system(size: 24))
-                    .foregroundColor(iconColor)
+    private var headerCard: some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(lm.t("welcome_back"))
+                    .font(.headline.weight(.semibold))
+                    .foregroundColor(.white.opacity(0.62))
+                
+                Text(lm.t(vm.greeting))
+                    .font(.system(size: 46, weight: .medium, design: .default))
+                    .minimumScaleFactor(0.5)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.white, Color.white.opacity(0.85)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
             }
             
+            Spacer(minLength: 12)
+            
+            HStack(spacing: 8) {
+                Image(systemName: "calendar")
+                    .foregroundStyle(Color.glassCyan)
+                Text(Date.now.formatted(date: .abbreviated, time: .omitted))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.white.opacity(0.8))
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .overlay(Capsule().stroke(Color.white.opacity(0.16), lineWidth: 1))
+            )
+        }
+        .padding(16)
+        .homePanel(cornerRadius: 22)
+    }
+    
+    private var activityCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label(lm.t("activity"), systemImage: "chart.bar.xaxis")
+                    .font(.system(size: 24, weight: .medium, design: .default))
+                    .foregroundStyle(.white)
+                Spacer()
+            }
+            
+            HStack {
+                Spacer()
+                HeatmapView(sessions: vm.sessions)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 8)
+                    .homePanel(cornerRadius: 16, edgeHighlight: Color.white.opacity(0.12))
+                Spacer()
+            }
+        }
+        .padding(16)
+        .homePanel(cornerRadius: 22)
+    }
+    
+    private func statCard(icon: String, value: Int, label: String, iconColor: Color) -> some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 22, weight: .medium))
+                .foregroundColor(iconColor)
+            
             Text("\(value)")
-                .font(.system(size: 48, weight: .bold, design: .rounded))
-                .foregroundColor(valueColor)
+                .font(.system(size: 56, weight: .medium, design: .default))
+                .foregroundColor(.white)
                 .contentTransition(.numericText())
-                .animation(.spring, value: value)
+                .animation(.spring(response: 0.32, dampingFraction: 0.82), value: value)
             
             Text(label)
-                .font(.subheadline.bold())
-                .foregroundColor(DesignSystem.Colors.secondaryText)
+                .font(.headline.weight(.semibold))
+                .foregroundColor(.white.opacity(0.7))
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 160)
-        .premiumGlass()
+        .frame(minHeight: 170)
+        .padding(.vertical, 4)
+        .homePanel(cornerRadius: 20)
+    }
+    
+    private var homeBackground: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.03, green: 0.04, blue: 0.2),
+                    Color(red: 0.02, green: 0.03, blue: 0.17)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            Circle()
+                .fill(Color.glassCyan.opacity(0.16))
+                .frame(width: 420)
+                .offset(x: animateCircles ? 160 : -40, y: animateCircles ? -140 : 100)
+                .blur(radius: 80)
+            
+            Circle()
+                .fill(Color.blue.opacity(0.14))
+                .frame(width: 360)
+                .offset(x: animateCircles ? -180 : 100, y: animateCircles ? 150 : -100)
+                .blur(radius: 80)
+        }
+        .animation(.easeInOut(duration: 18).repeatForever(autoreverses: true), value: animateCircles)
+    }
+}
+
+private extension View {
+    func homePanel(cornerRadius: CGFloat = 20, edgeHighlight: Color = Color.glassCyan.opacity(0.16)) -> some View {
+        self
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.1), Color.white.opacity(0.05)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .stroke(edgeHighlight, lineWidth: 1)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                    )
+                    .shadow(color: .black.opacity(0.2), radius: 14, x: 0, y: 8)
+            )
     }
 }
