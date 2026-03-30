@@ -27,7 +27,6 @@ struct MainCoordinatorView: View {
         .onChange(of: coordinator.path) { _, _ in
             syncSidebarVisibility()
         }
-        .animation(.easeInOut(duration: 0.22), value: sidebarVisibility)
         .frame(minWidth: 700, minHeight: 500)
         .alert(lm.t("error_occurred"), isPresented: $eh.showErrorMessage) {
             Button(lm.t("ok"), role: .cancel) { eh.clear() }
@@ -191,13 +190,7 @@ struct MainCoordinatorView: View {
     }
 
     private func select(tab: AppCoordinator.Tab) {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            coordinator.selectedTab = tab
-        }
-
-        if !coordinator.path.isEmpty {
-            coordinator.popToRoot()
-        }
+        coordinator.selectTab(tab)
     }
 
     private var pathBinding: Binding<[AppScreen]> {
