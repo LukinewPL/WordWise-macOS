@@ -16,32 +16,45 @@ enum AppScreen: Hashable {
     var path: [AppScreen] = []
     var selectedTab: Tab = .home
     private(set) var focusedModeDepth: Int = 0
-    
+
     var isInFocusedMode: Bool {
         focusedModeDepth > 0
     }
-    
+
     enum Tab: Int, Hashable {
         case home, library, settings
     }
-    
+
     func navigate(to screen: AppScreen) {
-        path.append(screen)
+        withAnimation(.snappy(duration: 0.22)) {
+            path.append(screen)
+        }
     }
-    
+
     func pop() {
         guard !path.isEmpty else { return }
-        path.removeLast()
+        withAnimation(.snappy(duration: 0.2)) {
+            path.removeLast()
+        }
     }
-    
+
     func popToRoot() {
-        path.removeAll()
+        withAnimation(.snappy(duration: 0.2)) {
+            path.removeAll()
+        }
     }
-    
+
+    func selectTab(_ tab: Tab) {
+        withAnimation(.snappy(duration: 0.2)) {
+            selectedTab = tab
+            path.removeAll()
+        }
+    }
+
     func enterFocusedMode() {
         focusedModeDepth += 1
     }
-    
+
     func exitFocusedMode() {
         focusedModeDepth = max(0, focusedModeDepth - 1)
     }
