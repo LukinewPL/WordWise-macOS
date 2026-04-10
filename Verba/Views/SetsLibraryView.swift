@@ -94,7 +94,7 @@ struct SetsLibraryView: View {
                         .font(.system(size: 24, weight: .medium, design: .default))
                         .foregroundColor(.white)
                     HStack(spacing: 10) {
-                        Label("\(vm.allSets.count) \(lm.t("words"))", systemImage: "text.book.closed.fill")
+                        Label("\(vm.allSets.count) \(lm.t("sets"))", systemImage: "text.book.closed.fill")
                         Label("\(vm.folders.count)", systemImage: "folder.fill")
                     }
                     .font(.caption.weight(.semibold))
