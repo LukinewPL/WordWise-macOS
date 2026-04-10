@@ -45,6 +45,33 @@ final class ImportServiceTests: XCTestCase {
         XCTAssertTrue(sets.first?.words.contains(where: { $0.polish == "sun" && $0.english == "slonce" }) == true)
     }
 
+    func testImportFileParsesCommaSeparatedRowsFromCSVFile() throws {
+        let url = try makeTempFile(name: UUID().uuidString, ext: "csv", content: "dog,pies\ncat,kot")
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        try service.importFile(url: url, context: context, existingSets: [])
+
+        let sets = try context.fetch(FetchDescriptor<WordSet>())
+        XCTAssertEqual(sets.first?.words.count, 2)
+        XCTAssertTrue(sets.first?.words.contains(where: { $0.polish == "dog" && $0.english == "pies" }) == true)
+    }
+
+    func testImportFileParsesQuotedCSVFieldsWithCommasAndEscapedQuotes() throws {
+        let content = #"""
+        "ice, cream",lody
+        "quote ""inside""",cytat
+        """#
+        let url = try makeTempFile(name: UUID().uuidString, ext: "csv", content: content)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        try service.importFile(url: url, context: context, existingSets: [])
+
+        let sets = try context.fetch(FetchDescriptor<WordSet>())
+        let words = sets.first?.words ?? []
+        XCTAssertTrue(words.contains(where: { $0.polish == "ice, cream" && $0.english == "lody" }))
+        XCTAssertTrue(words.contains(where: { $0.polish == "quote \"inside\"" && $0.english == "cytat" }))
+    }
+
     func testImportFileParsesEqualsSeparatedRows() throws {
         let url = try makeTempFile(name: UUID().uuidString, ext: "txt", content: "red=czewony\nblue=niebieski")
         defer { try? FileManager.default.removeItem(at: url) }

@@ -10,7 +10,8 @@ class ImportService {
         
         let name = url.deletingPathExtension().lastPathComponent
         let rows: [[String]]
-        if url.pathExtension.lowercased() == "xlsx" {
+        let extensionLowercased = url.pathExtension.lowercased()
+        if extensionLowercased == "xlsx" || extensionLowercased == "csv" {
             rows = try XLSXParser.parse(url: url)
         } else {
             rows = try parseTXT(url: url)
@@ -64,7 +65,8 @@ class ImportService {
         }
         
         let rows: [[String]]
-        if url.pathExtension.lowercased() == "xlsx" {
+        let extensionLowercased = url.pathExtension.lowercased()
+        if extensionLowercased == "xlsx" || extensionLowercased == "csv" {
             rows = try XLSXParser.parse(url: url)
         } else {
             rows = try parseTXT(url: url)
