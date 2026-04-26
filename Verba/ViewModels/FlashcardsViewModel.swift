@@ -4,11 +4,38 @@ import Observation
 
 @Observable @MainActor final class FlashcardsViewModel {
     var set: WordSet
-    var queue: [Word] = []
-    var current: Word?
+    var queue: [Word] {
+        guard !orderedWords.isEmpty else { return [] }
+
+        var result: [Word] = []
+        var included = Set<Int>()
+
+        // Cards temporarily deferred by "previous" should appear first.
+        for index in forwardIndices.reversed() where included.insert(index).inserted {
+            result.append(orderedWords[index])
+        }
+
+        guard let currentIndex else { return result }
+
+        let start = currentIndex + 1
+        guard start < orderedWords.count else { return result }
+
+        for index in start..<orderedWords.count where included.insert(index).inserted {
+            result.append(orderedWords[index])
+        }
+
+        return result
+    }
+    var current: Word? {
+        guard let currentIndex else { return nil }
+        guard orderedWords.indices.contains(currentIndex) else { return nil }
+        return orderedWords[currentIndex]
+    }
     var isFlipped: Bool = false
-    private var history: [Word] = []
-    private var deckWords: [Word] = []
+    private var historyIndices: [Int] = []
+    private var orderedWords: [Word] = []
+    private var currentIndex: Int?
+    private var forwardIndices: [Int] = []
     
     init(set: WordSet) {
         self.set = set
@@ -16,11 +43,11 @@ import Observation
     }
     
     func reset() {
-        deckWords = set.words.shuffled()
-        queue = deckWords
-        history = []
+        orderedWords = set.words.shuffled()
+        historyIndices = []
+        forwardIndices = []
+        currentIndex = orderedWords.isEmpty ? nil : 0
         isFlipped = false
-        advanceToNextWord(recordCurrent: false)
     }
     
     func nextWord() {
@@ -33,13 +60,13 @@ import Observation
 
     @discardableResult
     func goToPreviousWord() -> Bool {
-        guard let previous = history.popLast() else { return false }
+        guard let previousIndex = historyIndices.popLast() else { return false }
 
-        if let current {
-            queue.insert(current, at: 0)
+        if let currentIndex {
+            forwardIndices.append(currentIndex)
         }
 
-        current = previous
+        currentIndex = previousIndex
         isFlipped = false
         return true
     }
@@ -61,13 +88,13 @@ import Observation
     }
     
     var totalCount: Int {
-        deckWords.count
+        orderedWords.count
     }
     
     var currentPosition: Int {
         guard totalCount > 0 else { return 0 }
         if current == nil { return totalCount }
-        return min(totalCount, history.count + 1)
+        return min(totalCount, historyIndices.count + 1)
     }
     
     var progress: Double {
@@ -84,21 +111,35 @@ import Observation
     }
 
     var canGoBack: Bool {
-        !history.isEmpty
+        !historyIndices.isEmpty
     }
 
     private func advanceToNextWord(recordCurrent: Bool) {
-        if recordCurrent, let current {
-            markWordAsReviewed(current)
-            history.append(current)
+        if recordCurrent, let currentIndex {
+            let currentWord = orderedWords[currentIndex]
+            markWordAsReviewed(currentWord)
+            historyIndices.append(currentIndex)
         }
 
-        if queue.isEmpty {
-            current = nil
-        } else {
-            current = queue.removeFirst()
+        if let deferredIndex = forwardIndices.popLast() {
+            currentIndex = deferredIndex
             isFlipped = false
+            return
         }
+
+        guard let currentIndex else {
+            self.currentIndex = nil
+            isFlipped = false
+            return
+        }
+
+        let nextIndex = currentIndex + 1
+        if nextIndex < orderedWords.count {
+            self.currentIndex = nextIndex
+        } else {
+            self.currentIndex = nil
+        }
+        isFlipped = false
     }
 
     private func markWordAsReviewed(_ word: Word) {

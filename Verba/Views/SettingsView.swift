@@ -11,6 +11,7 @@ struct SettingsView: View {
         GridItem(.flexible(minimum: 140), spacing: 12),
         GridItem(.flexible(minimum: 140), spacing: 12)
     ]
+    private let pairedCardMinHeight: CGFloat = 354
 
     var body: some View {
         ZStack {
@@ -23,8 +24,10 @@ struct SettingsView: View {
 
                     ViewThatFits(in: .horizontal) {
                         HStack(alignment: .top, spacing: 16) {
-                            legendCard.frame(maxWidth: .infinity)
-                            animationCard.frame(maxWidth: .infinity)
+                            legendCard
+                                .frame(maxWidth: .infinity, minHeight: pairedCardMinHeight, alignment: .top)
+                            animationCard
+                                .frame(maxWidth: .infinity, minHeight: pairedCardMinHeight, alignment: .top)
                         }
 
                         VStack(spacing: 16) {

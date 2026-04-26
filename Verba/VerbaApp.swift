@@ -3,6 +3,11 @@ import SwiftData
 
 // MARK: - App
 
+private enum AppWindowMetrics {
+    static let width: CGFloat = 1580
+    static let height: CGFloat = 980
+}
+
 @main struct VerbaApp: App {
     @State private var languageManager = LanguageManager.shared
     @State private var coordinator = AppCoordinator()
@@ -20,13 +25,14 @@ import SwiftData
     var body: some Scene {
         WindowGroup {
             MainCoordinatorView()
+                .frame(width: AppWindowMetrics.width, height: AppWindowMetrics.height)
                 .preferredColorScheme(.dark)
                 .environment(languageManager)
                 .environment(coordinator)
                 .environment(WordRepository(modelContext: container.mainContext))
         }
         .modelContainer(container)
-        .windowResizability(.contentMinSize)
-        .defaultSize(width: 800, height: 600)
+        .windowResizability(.contentSize)
+        .defaultSize(width: AppWindowMetrics.width, height: AppWindowMetrics.height)
     }
 }

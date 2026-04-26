@@ -15,6 +15,7 @@ struct FlashcardsView: View {
     @State private var cardOpacity: Double = 1
 
     private let cardCornerRadius: CGFloat = 30
+    private let minimumAnimationDuration: Double = 0.12
 
     init(set: WordSet) {
         _vm = State(initialValue: FlashcardsViewModel(set: set))
@@ -119,7 +120,9 @@ struct FlashcardsView: View {
         if abs(effectiveX) >= commitThreshold {
             skipToNext(direction: effectiveX > 0 ? 1 : -1)
         } else {
-            withAnimation(.easeOut(duration: adjustedDuration(0.12))) {
+            performCardAnimation(baseDuration: 0.12) { duration in
+                .easeOut(duration: duration)
+            } updates: {
                 dragOffset = .zero
             }
         }
@@ -129,17 +132,21 @@ struct FlashcardsView: View {
         guard !isFlipping, vm.current != nil else { return }
         isFlipping = true
 
-        withAnimation(.easeIn(duration: adjustedDuration(0.11))) {
+        performCardAnimation(baseDuration: 0.11) { duration in
+            .easeIn(duration: duration)
+        } updates: {
             rotation = 90
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + adjustedDuration(0.11)) {
+        schedule(after: adjustedDuration(0.11)) {
             showingBack.toggle()
             rotation = -90
-            withAnimation(.easeOut(duration: adjustedDuration(0.13))) {
+            performCardAnimation(baseDuration: 0.13) { duration in
+                .easeOut(duration: duration)
+            } updates: {
                 rotation = 0
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + adjustedDuration(0.13)) {
+            schedule(after: adjustedDuration(0.13)) {
                 isFlipping = false
             }
         }
@@ -149,12 +156,14 @@ struct FlashcardsView: View {
         guard vm.current != nil, !isAdvancing else { return }
         isAdvancing = true
 
-        withAnimation(.easeIn(duration: adjustedDuration(0.16))) {
+        performCardAnimation(baseDuration: 0.16) { duration in
+            .easeIn(duration: duration)
+        } updates: {
             dragOffset = CGSize(width: direction * 760, height: 90)
             cardOpacity = 0
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + adjustedDuration(0.16)) {
+        schedule(after: adjustedDuration(0.16)) {
             vm.goToNextWord()
             completeCardTransition(oppositeDirection: -direction)
         }
@@ -171,12 +180,14 @@ struct FlashcardsView: View {
         rotation = 0
         isFlipping = false
 
-        withAnimation(.easeOut(duration: adjustedDuration(0.18))) {
+        performCardAnimation(baseDuration: 0.18) { duration in
+            .easeOut(duration: duration)
+        } updates: {
             dragOffset = .zero
             cardOpacity = 1
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + adjustedDuration(0.18)) {
+        schedule(after: adjustedDuration(0.18)) {
             isAdvancing = false
         }
     }
@@ -188,18 +199,45 @@ struct FlashcardsView: View {
         dragOffset = CGSize(width: oppositeDirection * 120, height: -12)
         cardOpacity = 0
 
-        withAnimation(.easeOut(duration: adjustedDuration(0.14))) {
+        performCardAnimation(baseDuration: 0.14) { duration in
+            .easeOut(duration: duration)
+        } updates: {
             dragOffset = .zero
             cardOpacity = 1
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + adjustedDuration(0.14)) {
+        schedule(after: adjustedDuration(0.14)) {
             isAdvancing = false
         }
     }
 
     private func adjustedDuration(_ base: Double) -> Double {
-        guard animationSpeed > 0 else { return 0.01 }
-        return base / animationSpeed
+        guard animationSpeed > 0 else { return 0 }
+        return max(minimumAnimationDuration, base / animationSpeed)
+    }
+
+    private func performCardAnimation(
+        baseDuration: Double,
+        animation: (Double) -> Animation,
+        updates: () -> Void
+    ) {
+        guard animationSpeed > 0 else {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction, updates)
+            return
+        }
+
+        let duration = adjustedDuration(baseDuration)
+        withAnimation(animation(duration), updates)
+    }
+
+    private func schedule(after seconds: Double, action: @escaping () -> Void) {
+        guard seconds > 0 else {
+            action()
+            return
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: action)
     }
 }

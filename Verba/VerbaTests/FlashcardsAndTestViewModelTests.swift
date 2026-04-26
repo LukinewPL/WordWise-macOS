@@ -95,7 +95,7 @@ final class FlashcardsNavigationViewModelTests: XCTestCase {
 
 @MainActor
 final class TestViewModelTests: XCTestCase {
-    func testStartTestUsesDueReviewedWordsWhenAvailable() {
+    func testStartTestUsesAllSetWordsWhenDueReviewedWordsExist() {
         let due = Word(polish: "pies", english: "dog")
         due.lastReviewed = Date().addingTimeInterval(-3_600)
         due.nextReview = Date().addingTimeInterval(-300)
@@ -110,10 +110,11 @@ final class TestViewModelTests: XCTestCase {
 
         vm.startTest()
 
-        XCTAssertEqual(vm.queue.map(\.id), [due.id])
+        XCTAssertEqual(vm.queue.count, 3)
+        XCTAssertEqual(Set(vm.queue.map(\.id)), Set([due.id, future.id, newWord.id]))
     }
 
-    func testStartTestFallsBackToNewWordsWhenNoDueReviewedWordsExist() {
+    func testStartTestUsesReviewedAndNewWordsWhenNoDueReviewedWordsExist() {
         let future = Word(polish: "kot", english: "cat")
         future.lastReviewed = Date().addingTimeInterval(-3_600)
         future.nextReview = Date().addingTimeInterval(3_600)
@@ -124,7 +125,8 @@ final class TestViewModelTests: XCTestCase {
 
         vm.startTest()
 
-        XCTAssertEqual(vm.queue.map(\.id), [newWord.id])
+        XCTAssertEqual(vm.queue.count, 2)
+        XCTAssertEqual(Set(vm.queue.map(\.id)), Set([future.id, newWord.id]))
     }
 
     func testStartTestWithNoWordsFinishesImmediately() {

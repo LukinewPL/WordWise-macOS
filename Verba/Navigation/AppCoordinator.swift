@@ -40,7 +40,7 @@ enum AppScreen: Hashable {
             return
         }
 
-        let adjustedDuration = max(0.12, baseDuration / effectiveSpeed)
+        let adjustedDuration = max(0.16, baseDuration / effectiveSpeed)
         withAnimation(.snappy(duration: adjustedDuration), updates)
     }
 

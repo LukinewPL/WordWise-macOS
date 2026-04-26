@@ -134,30 +134,33 @@ struct SpeedRoundGameSection: View {
     private let timerOverlayHeight: CGFloat = 108
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 0) {
             Color.clear
                 .frame(height: timerOverlayHeight)
 
-            Spacer(minLength: 4)
+            Spacer(minLength: 12)
 
             if vm.current != nil {
-                ZStack {
-                    promptCard
-                        .id(vm.current?.id)
-                        .transition(contentTransition(edge: .trailing))
-                }
-                .animation(contentAnimation, value: vm.current?.id)
-
-                ZStack {
-                    if vm.showWrongAnswer {
-                        wrongAnswerCard
-                            .transition(contentTransition(edge: .top))
-                    } else {
-                        answerField
-                            .transition(contentTransition(edge: .bottom))
+                VStack(spacing: 18) {
+                    ZStack {
+                        promptCard
+                            .id(vm.current?.id)
+                            .transition(contentTransition(edge: .trailing))
                     }
+                    .animation(contentAnimation, value: vm.current?.id)
+
+                    ZStack {
+                        if vm.showWrongAnswer {
+                            wrongAnswerCard
+                                .transition(contentTransition(edge: .top))
+                        } else {
+                            answerField
+                                .transition(contentTransition(edge: .bottom))
+                        }
+                    }
+                    .animation(contentAnimation, value: vm.showWrongAnswer)
                 }
-                .animation(contentAnimation, value: vm.showWrongAnswer)
+                .frame(maxWidth: 780)
             }
 
             Spacer(minLength: 0)
@@ -174,26 +177,18 @@ struct SpeedRoundGameSection: View {
     }
 
     private var promptCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: "text.bubble.fill")
-                    .foregroundStyle(Color.glassTeal)
-                Text(lm.t("translation"))
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.white.opacity(0.62))
-            }
-
+        VStack(spacing: 0) {
             Text(vm.prompt)
-                .font(.system(size: 44, weight: .medium, design: .default))
+                .font(.system(size: 58, weight: .medium, design: .default))
                 .minimumScaleFactor(0.34)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
         }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 14)
-        .glassPanel(cornerRadius: 20, edgeHighlight: Color.white.opacity(0.16))
+        .padding(.vertical, 34)
+        .padding(.horizontal, 24)
+        .glassPanel(cornerRadius: 28, edgeHighlight: Color.white.opacity(0.16))
     }
 
     private var wrongAnswerCard: some View {
@@ -201,24 +196,44 @@ struct SpeedRoundGameSection: View {
             Image(systemName: "xmark.circle.fill")
                 .foregroundStyle(.red)
             Text(vm.target)
-                .font(.title2.weight(.semibold))
+                .font(.title.weight(.semibold))
                 .foregroundColor(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
         }
         .padding(.horizontal, 22)
-        .padding(.vertical, 11)
-        .glassPanel(cornerRadius: 14, edgeHighlight: Color.red.opacity(0.35))
+        .frame(height: 76)
+        .glassPanel(cornerRadius: 22, edgeHighlight: Color.red.opacity(0.35))
         .frame(maxWidth: 700)
     }
 
     private var answerField: some View {
         HStack(spacing: 10) {
-            Image(systemName: "keyboard.fill")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(Color.glassTeal)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.white.opacity(0.05))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color.glassSky.opacity(0.32), lineWidth: 1)
+                )
+                .frame(width: 52, height: 52)
+                .overlay {
+                    Image(systemName: "keyboard.fill")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(Color.glassTeal)
+                }
 
-            TextField(lm.t("enter_answer"), text: $vm.answer)
+            Rectangle()
+                .fill(Color.white.opacity(0.16))
+                .frame(width: 1, height: 34)
+
+            TextField(
+                "",
+                text: $vm.answer,
+                prompt: Text(lm.t("enter_answer"))
+                    .foregroundStyle(.white.opacity(0.5))
+            )
                 .textFieldStyle(.plain)
-                .font(.system(size: 25, weight: .medium, design: .default))
+                .font(.title)
                 .foregroundColor(.white)
                 .focused(focusBinding)
                 .onSubmit {
@@ -226,19 +241,19 @@ struct SpeedRoundGameSection: View {
                 }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 11)
-        .glassPanel(cornerRadius: 16)
+        .frame(height: 76)
+        .glassPanel(cornerRadius: 22)
         .frame(maxWidth: 700)
     }
 
     private var contentAnimation: SwiftUI.Animation? {
-        animationSpeed > 0 ? .spring(response: 0.34 / animationSpeed, dampingFraction: 0.82) : nil
+        animationSpeed > 0 ? .easeOut(duration: 0.16 / animationSpeed) : nil
     }
 
-    private func contentTransition(edge: Edge) -> AnyTransition {
+    private func contentTransition(edge _: Edge) -> AnyTransition {
         .asymmetric(
-            insertion: .move(edge: edge).combined(with: .opacity),
-            removal: .opacity.combined(with: .scale(scale: 0.98))
+            insertion: .opacity.combined(with: .scale(scale: 0.99)),
+            removal: .opacity
         )
     }
 }

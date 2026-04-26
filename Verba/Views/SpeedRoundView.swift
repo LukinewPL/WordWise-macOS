@@ -55,7 +55,7 @@ struct SpeedRoundView: View {
         .overlay {
             if vm.feedbackColor != .clear {
                 DesignSystem.Feedback.gradient(isSuccess: vm.feedbackIsSuccess)
-                    .opacity(0.24)
+                    .opacity(vm.feedbackIsSuccess ? 0.2 : 0.24)
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
             }
@@ -81,7 +81,7 @@ struct SpeedRoundView: View {
     private func checkAnswer() {
         vm.checkAnswer(
             onSuccess: {
-                scheduleTransition(after: 0.2) {
+                scheduleTransition(after: 0.18) {
                     vm.feedbackColor = .clear
                     vm.nextWord()
                     isFocused = true

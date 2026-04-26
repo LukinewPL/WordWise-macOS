@@ -87,8 +87,10 @@ import Observation
     func startTest() {
         pendingAdvanceWorkItem?.cancel()
         pendingAdvanceWorkItem = nil
-        testWords = sm2Service.buildReviewQueue(from: set.words)
-        queue = Array(testWords.shuffled().prefix(Int(questionCount)))
+        // Test mode should sample from the whole set, not only due/new SM-2 words.
+        // This keeps the requested question count and prevents repeating the same tiny subset.
+        testWords = set.words.shuffled()
+        queue = Array(testWords.prefix(Int(questionCount)))
         guard !queue.isEmpty else {
             finishTest()
             return

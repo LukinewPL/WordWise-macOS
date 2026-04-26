@@ -67,7 +67,7 @@ struct SetsLibraryView: View {
             Button(lm.t("cancel"), role: .cancel) {}
             Button(lm.t("create")) { vm.createFolder() }
         }
-        .navigationTitle("")
+        .navigationTitle("Verba")
         .toolbarTitleDisplayMode(.inline)
         .onAppear {
             vm.setup(repository: repository)

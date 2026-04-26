@@ -37,10 +37,10 @@ struct MainCoordinatorView: View {
             syncSidebarVisibility()
         }
         .onChange(of: coordinator.isInFocusedMode) { _, _ in
-            syncSidebarVisibility()
+            syncSidebarVisibility(animated: false)
         }
         .onChange(of: coordinator.path) { _, _ in
-            syncSidebarVisibility()
+            syncSidebarVisibility(animated: false)
         }
         .frame(minWidth: 700, minHeight: 500)
         .alert(lm.t("error_occurred"), isPresented: $eh.showErrorMessage) {
@@ -217,13 +217,22 @@ struct MainCoordinatorView: View {
         }
     }
 
-    private func syncSidebarVisibility() {
+    private func syncSidebarVisibility(animated: Bool = false) {
         let shouldHide = coordinator.isInFocusedMode || (coordinator.path.last.map(isSidebarHiddenMode) ?? false)
         let target: NavigationSplitViewVisibility = shouldHide ? .detailOnly : .all
 
         guard sidebarVisibility != target else { return }
 
-        withAnimation(.easeInOut(duration: 0.22)) {
+        guard animated else {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                sidebarVisibility = target
+            }
+            return
+        }
+
+        withAnimation(.easeInOut(duration: 0.2)) {
             sidebarVisibility = target
         }
     }

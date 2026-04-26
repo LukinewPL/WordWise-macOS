@@ -72,21 +72,21 @@ struct TestSetupView: View {
                     .glassPanel(cornerRadius: 14, edgeHighlight: Color.white.opacity(0.14))
 
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(lm.t("multiple_choice"))
+                        Text(lm.t("answer_mode"))
                             .font(.system(size: 15, weight: .medium, design: .default))
                             .foregroundColor(.white.opacity(0.86))
 
                         HStack(spacing: 8) {
                             TestModeButton(
                                 title: lm.t("multiple_choice"),
-                                icon: "list.bullet.rectangle.portrait.fill",
+                                icon: "list.bullet.rectangle.fill",
                                 isSelected: vm.isMultipleChoice,
                                 action: { vm.isMultipleChoice = true }
                             )
 
                             TestModeButton(
-                                title: lm.t("translation"),
-                                icon: "keyboard.fill",
+                                title: lm.t("typing_mode"),
+                                icon: "character.cursor.ibeam",
                                 isSelected: !vm.isMultipleChoice,
                                 action: { vm.isMultipleChoice = false }
                             )
